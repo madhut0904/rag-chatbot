@@ -1,32 +1,53 @@
-import { useState, useCallback } from 'react';
-import { askRagQuestion } from '../services/ragApi';
+import { useState, useCallback } from "react";
+import { askRagQuestion } from "../services/ragApi";
 
-export const useChat = () => {
+export function useChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = useCallback(async (text) => {
-    if (!text.trim()) return;
+  const sendMessage = useCallback(async (question) => {
+    if (!question || !question.trim()) return;
 
-    const userMessage = { sender: 'user', text };
-    setMessages((prev) => [...prev, userMessage]);
+    const trimmedQuestion = question.trim();
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: trimmedQuestion
+      }
+    ]);
+
     setLoading(true);
     setError(null);
 
     try {
-      const data = await askRagQuestion(text);
-      const botMessage = {
-        sender: 'assistant',
-        text: data?.answer || data?.response || 'No response received.',
-        sources: data?.sources || [],
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch response');
+      const result = await askRagQuestion({
+        question: trimmedQuestion
+      });
+
       setMessages((prev) => [
         ...prev,
-        { sender: 'assistant', text: 'Sorry, something went wrong. Please try again.', error: true },
+        {
+          role: "assistant",
+          content: result.answer,
+          sources: result.sources || []
+        }
+      ]);
+    } catch (err) {
+      const errorMessage =
+        err?.message || "Failed to get answer from RAG backend";
+      setError(errorMessage);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: errorMessage,
+          error: true,
+          sources: []
+        }
       ]);
     } finally {
       setLoading(false);
@@ -38,8 +59,8 @@ export const useChat = () => {
     loading,
     error,
     sendMessage,
-    setMessages,
+    setMessages
   };
-};
+}
 
 export default useChat;

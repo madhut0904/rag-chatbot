@@ -8,12 +8,10 @@ export default function ChatWindow({
 }) {
   return (
     <div className="mx-auto flex h-[700px] max-w-4xl flex-col overflow-hidden rounded-2xl border bg-white shadow">
-
       <div className="border-b p-5">
         <h1 className="text-xl font-semibold">
           Study Assistant
         </h1>
-
         <p className="text-sm text-gray-500">
           Ask questions from your uploaded notes
         </p>
@@ -31,11 +29,12 @@ export default function ChatWindow({
             key={index}
             role={message.role}
             content={message.content}
+            sources={message.sources || []}
           />
         ))}
 
         {loading && (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 italic py-2">
             Searching your notes...
           </div>
         )}
